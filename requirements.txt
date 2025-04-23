@@ -9,3 +9,4 @@ pygame
 matplotlib
 tensordict
 torchrl
+opencv-python
