@@ -19,10 +19,9 @@ class Agent(object):
         self.action_space = gym.spaces.Discrete(12)
         self.frames = deque([], maxlen=4)
 
-        # self.model = torch.jit.load('policy_model_latest.pth').to(device)
         self.policy_model = DQNSolver([4, 84, 84], 12)
-        self.policy_model.load_state_dict(torch.load('policy_model_latest_4.pth'))
-        self.policy_model.to(device)
+        self.policy_model.load_state_dict(torch.load('policy_model_latest_4.pth', map_location=device))
+
         self.policy_model.eval() # Set to evaluation mode
 
         self.prev_action = 0
@@ -66,11 +65,8 @@ class Agent(object):
             input = np.concatenate(list(self.frames), axis=0)
             input = torch.tensor(input, dtype=torch.float32).unsqueeze(0) / 255.0
         
-            action_values = self.policy_model(input.to(device)) #.detach().cpu().numpy()
-            # # print(action_values)
-            # prob = self.softmax(action_values, temperature=0.05).squeeze(0)
-            # # print(prob)
-            # action = np.random.choice(np.arange(self.action_space.n), p=prob)
+            action_values = self.policy_model(input.to(device))
+
             action = torch.argmax(action_values).item()
             self.prev_action = action
         else:
@@ -79,14 +75,9 @@ class Agent(object):
         self.count += 1
 
         r = random.random()
-        # with open("random_value.txt", "a") as f:
-        #     f.write(f"{r}\n")
         
         if r < self.epsilon:
-            # a = self.action_space.sample()
             a = random.choice(range(self.action_space.n))
-            # with open("random_action.txt", "a") as f:
-            #     f.write(f"{a}\n")
             return a
         else:
             return action
